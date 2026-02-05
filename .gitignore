@@ -2,7 +2,6 @@
 train/
 test/
 valid/
-proto_test/
 
 # Node modules
 node_modules/
@@ -14,7 +13,6 @@ node_modules/
 
 # Training outputs
 runs/
-prototype_results/
 
 # Python cache
 __pycache__/
