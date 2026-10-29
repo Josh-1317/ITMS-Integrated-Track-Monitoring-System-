@@ -1,220 +1,231 @@
-# ITMS - Integrated Track Monitoring System
+# Integrated Track Monitoring System
 
-A comprehensive railway track monitoring system that uses YOLOv8 object detection to identify and classify track defects in real-time, paired with a modern React-based dashboard for visualization and management.
+**Railway inspection prototype · YOLOv8 detection · React dashboard**
 
-## 🚂 Overview
+A computer-vision project for exploring railway track defect detection, paired with a dashboard for reviewing detections, devices, and maintenance workflows.
 
-ITMS combines computer vision and web technologies to provide an automated solution for railway track inspection and monitoring. The system detects 15 different types of track defects and anomalies, helping maintain railway safety and reduce manual inspection efforts.
+[Quick start](#quick-start) · [Detection workflow](#detection-workflow) · [Implementation status](#implementation-status) · [Architecture](#architecture-in-detail) · [Evaluation](#evaluation-and-reproducibility)
 
-## 🎯 Features
+## Implementation status
 
-### AI-Powered Detection
-- **15 Defect Classes**: Detects cracks, flakings, joints, shellings, spallings, squats, ballast loss, broken fishplates, corrosion, loose bolts, missing bolts, rail joint gaps, rail wear, sleeper cracks, and surface spalling
-- **YOLOv8 Model**: State-of-the-art object detection with high accuracy
-- **Real-time Processing**: Fast inference for live monitoring
+| Component | Current scope |
+| --- | --- |
+| Detection training | YOLOv8s training script and 15-class dataset configuration |
+| Image inference | Batch inference script that saves annotated images |
+| Dashboard | React pages for detections, live-view presentation, tasks, devices, and reporting |
+| Authentication | Mock Admin/Staff role selection in React context |
+| Hardware and live integration | Not established by the committed training scripts and dashboard |
 
-### Web Dashboard
-- **Live View**: Real-time video feed with detection overlays
-- **Detection Management**: View, filter, and manage detected defects
-- **Analytics Dashboard**: Visualize trends and statistics
-- **User Management**: Role-based access control (Admin/User)
-- **Device Management**: Monitor and configure detection devices
-- **Task Assignment**: Create and track maintenance tasks
-- **Report Generation**: Export detection reports
+Dashboard screens and mock data demonstrate the intended workflow. They should not be presented as evidence of connected sensors, production authentication, or a deployed real-time inspection system.
 
-## 🏗️ Project Structure
+## Quick start
 
-```
-ITMS/
-├── frontend/               # React web application
-│   ├── src/
-│   │   ├── components/    # Reusable UI components
-│   │   ├── pages/         # Application pages
-│   │   ├── context/       # React context providers
-│   │   └── lib/           # Utilities and helpers
-│   ├── public/            # Static assets
-│   └── package.json       # Frontend dependencies
-├── proto_test/            # Prototype test images
-├── prototype_results/     # Detection results from testing
-├── train_yolo.py          # YOLO model training script
-├── val.py                 # Model validation script
-├── check.py               # Utility script
-└── data.yaml              # Dataset configuration
-```
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **Python**: 3.8 or higher
-- **Node.js**: 16.x or higher
-- **GPU**: NVIDIA GPU with CUDA support (recommended for training)
-- **Git**: For version control
-
-### Installation
-
-#### 1. Clone the Repository
 ```bash
-git clone https://github.com/Josh-1317/ITMS-Integrated-Track-Monitoring-System-.git
-cd ITMS
-```
-
-#### 2. Set Up the Frontend
-```bash
-cd frontend
+git clone https://github.com/Praveenraj1618/Integrated-Track-Monitoring-System.git
+cd Integrated-Track-Monitoring-System/frontend
 npm install
+npm start
 ```
 
-#### 3. Set Up Python Environment
+Open http://localhost:3000. Use the available demo roles to explore the interface.
+
+Build the frontend with `npm run build` from `frontend/`.
+
+## Detection workflow
+
+From the repository root, create and activate a Python virtual environment, then install the detection dependencies:
+
 ```bash
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# On Windows:
-venv\Scripts\activate
-# On Linux/Mac:
-source venv/bin/activate
-
-# Install dependencies
-pip install ultralytics opencv-python numpy
+python -m venv .venv
 ```
 
-## 📊 Training the Model
+Activate with `.venv\Scripts\Activate.ps1` on Windows PowerShell or `source .venv/bin/activate` on macOS/Linux.
 
-### Dataset Structure
-Organize your dataset as follows:
-```
-ITMS/
-├── train/
-│   ├── images/
-│   └── labels/
-├── valid/
-│   ├── images/
-│   └── labels/
-└── test/
-    ├── images/
-    └── labels/
-```
-
-### Configuration
-Edit `data.yaml` to match your dataset paths and classes.
-
-### Train the Model
 ```bash
-python train_yolo.py
+python -m pip install ultralytics opencv-python numpy
 ```
 
-**Training Parameters:**
-- Model: YOLOv8s
-- Epochs: 80
-- Image Size: 640x640
-- Batch Size: 32
-- Device: GPU (CUDA)
-- Early Stopping: 20 epochs patience
+### Training
 
-Training results will be saved in `runs/train/rail_guard_experiment/`.
+1. Provide a YOLO-format dataset with image/label splits for training, validation, and testing.
+2. Update [data.yaml](data.yaml) with paths to those splits.
+3. Change `data_config_path` in [train_yolo.py](train_yolo.py); it currently points to a machine-specific Windows location.
+4. Adjust `device`, batch size, and workers for your hardware. The committed configuration selects CUDA device 0 and batch size 32.
+5. Run `python train_yolo.py`.
 
-### Validate the Model
+The script specifies YOLOv8s, 80 epochs, 640-pixel images, and early-stopping patience of 20. Results are written under `runs/train/`.
+
+### Image inference
+
+Edit `MODEL_PATH`, `IMAGE_FOLDER`, and `OUTPUT_FOLDER` in [val.py](val.py), then run:
+
 ```bash
 python val.py
 ```
 
-## 🖥️ Running the Frontend
+Despite its filename, this script performs folder-based inference and saves annotated images; it does not calculate validation metrics. Trained weights and the full training dataset must be supplied separately.
 
-### Development Mode
-```bash
-cd frontend
-npm start
+## Configured classes
+
+The 15 labels in `data.yaml` are:
+
+Cracks, Flakings, Joints, Shellings, Spallings, Squats, ballast_loss, broken_fishplate, corrosion, loose_bolt, missing_bolt, rail_joint_gap, rail_wear, sleeper_crack, and surface_spalling.
+
+These are configured training categories; accuracy must be established using a trained checkpoint and a held-out dataset.
+
+## Architecture in detail
+
+The repository has two independently runnable parts: a Python detection workflow and a React demonstration interface.
+
+```mermaid
+flowchart TD
+  subgraph Detection["Python detection workflow"]
+    A["Labeled track images"] --> B["YOLOv8s training"]
+    B --> C["Trained checkpoint"]
+    D["Inspection images"] --> E["Folder inference"]
+    C --> E
+    E --> F["Annotated image files"]
+  end
+  subgraph Interface["React demonstration"]
+    G["Sample detection records"] --> H["Dashboard and detail views"]
+    I["Demo role selection"] --> H
+    J["Prerecorded video"] --> K["Live-view presentation"]
+  end
 ```
 
-The application will open at `http://localhost:3000`.
+There is no committed API connecting these two parts. The dashboard demonstrates how inspection results could be reviewed; the Python scripts perform training and image inference separately.
 
-### Production Build
-```bash
-cd frontend
-npm run build
+### Why object detection?
+
+Track inspection needs both a defect category and its position. One photograph may contain several components or defects, so assigning one label to the whole image is insufficient. YOLO predicts bounding boxes, class labels, and confidence scores that can be overlaid on the original image.
+
+Training begins with `yolov8s.pt` and adapts its weights to the configured dataset. Prediction confidence does not measure physical severity, crack depth, or track geometry.
+
+### Dashboard behavior
+
+| Screen or component | Current implementation |
+| --- | --- |
+| Dashboard overview | Reads `mockDetections`; several KPI values are hardcoded |
+| Detection list | Shows sample labels, severity, status, and timestamps |
+| Detection details | Provides a route for reviewing individual records |
+| Live view | Plays `frontend/public/sample-video.mp4`; the button toggles UI state and randomly selects a severity badge |
+| Login | Selects an in-memory Admin or Staff demo user |
+| Report issue | Displays file, location, and description fields; no submission handler persists the report |
+| Admin and task pages | Present the intended management workflow |
+
+The displayed predictive risk score is a fixed interface value, not a trained model output. The stream control does not start a camera or run inference.
+
+### Navigation
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Landing page |
+| `/login` | Demo role selection |
+| `/report` | Public report form |
+| `/dashboard` | Overview |
+| `/dashboard/detections` | Detection list |
+| `/dashboard/detections/:id` | Detection details |
+| `/dashboard/mytasks` | Maintenance task presentation |
+| `/dashboard/admin` | Administrative interface |
+| `/dashboard/settings` | Settings |
+
+## Dataset and training details
+
+Each image needs a corresponding text annotation file with the same filename stem. YOLO detection annotations use:
+
+```text
+class_id center_x center_y width height
 ```
 
-The optimized build will be created in the `frontend/build/` directory.
+Coordinates are normalized to the image dimensions. Class IDs are zero-based and must follow the label order in `data.yaml`.
 
-## 🎨 Frontend Features
+| Split | Images | Labels |
+| --- | --- | --- |
+| Training | `train/images` | `train/labels` |
+| Validation | `valid/images` | `valid/labels` |
+| Test | `test/images` | `test/labels` |
 
-### Pages
-- **Landing Page**: Introduction and system overview
-- **Login**: User authentication
-- **Dashboard**: Overview with statistics and charts
-- **Live View**: Real-time detection feed
-- **Detections**: Browse and filter detected defects
-- **Detection Detail**: Detailed view of individual detections
-- **My Tasks**: Assigned maintenance tasks
-- **Admin Panel**: User and device management
-- **Settings**: User preferences and configuration
-- **Report Issue**: Submit issues and feedback
+Split inspection sequences or locations before training where possible. Adjacent video frames can be nearly identical, so distributing them randomly between training and evaluation can overstate performance.
 
-### Technologies Used
-- **React**: UI framework
-- **React Router**: Navigation
-- **Tailwind CSS**: Styling
-- **Framer Motion**: Animations
-- **Recharts**: Data visualization
-- **Lucide React**: Icons
-- **Socket.io**: Real-time communication
+### Committed configuration
 
-## 🔍 Detected Defect Classes
+| Setting | Value | Purpose |
+| --- | --- | --- |
+| Initial model | YOLOv8s | Transfer-learning starting point |
+| Epoch limit | 80 | Maximum training passes |
+| Image size | 640 | Training input size |
+| Batch size | 32 | Images per optimization step |
+| Device | 0 | First CUDA GPU |
+| Workers | 4 | Data-loading processes |
+| Patience | 20 | Early stopping after stalled improvement |
+| Output group | `runs/train` | Training artifacts |
+| Experiment | `rail_guard_experiment` | Run name; later runs may receive a suffix |
 
-| Class | Description |
-|-------|-------------|
-| Cracks | Surface or structural cracks in rails |
-| Flakings | Surface material detachment |
-| Joints | Rail joint conditions |
-| Shellings | Progressive surface defects |
-| Spallings | Concrete or material chipping |
-| Squats | Rail surface defects from rolling contact |
-| Ballast Loss | Missing or displaced ballast |
-| Broken Fishplate | Damaged rail connectors |
-| Corrosion | Metal deterioration |
-| Loose Bolt | Unsecured fasteners |
-| Missing Bolt | Absent fasteners |
-| Rail Joint Gap | Excessive gaps at rail joints |
-| Rail Wear | Surface wear patterns |
-| Sleeper Crack | Damaged railway ties |
-| Surface Spalling | Surface material loss |
+Batch size 32 does not guarantee compatibility with a particular GPU. Lower it if memory is exhausted. On Windows, reducing workers can help diagnose data-loading problems. Run `python check.py` to inspect PyTorch's CUDA visibility.
 
-## 📁 Dataset Information
+### Inference outputs
 
-The dataset is **not included** in this repository due to size constraints. You need to provide your own dataset following the YOLO format:
-- Images in `.jpg` or `.png` format
-- Labels in `.txt` format (YOLO annotation format)
-- Organized into `train/`, `valid/`, and `test/` directories
+The inference script accepts JPG, JPEG, and PNG images and saves annotated results using the source filenames. Use a fresh output directory when comparing models to avoid replacing previous outputs.
 
-## 🤝 Contributing
+Browse [saved prototype detections](prototype_results) and [prototype input images](proto_test) for qualitative examples. These images do not establish aggregate accuracy.
 
-Contributions are welcome! Please follow these steps:
+## Evaluation and reproducibility
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+Record the checkpoint, dataset split, class mapping, image size, confidence threshold, software environment, and hardware for each evaluation.
 
-## 📝 License
+| Measure | Interpretation |
+| --- | --- |
+| Precision | Fraction of reported detections that match labeled defects |
+| Recall | Fraction of labeled defects successfully found |
+| mAP@50 | Detection ranking and localization at IoU 0.50 |
+| mAP@50–95 | Detection quality across increasingly strict overlap thresholds |
+| Per-class metrics | Performance differences between defect categories |
+| Latency | Time required per image on the target hardware |
 
-This project is available for educational and research purposes.
+This documentation does not claim a reproduced score for the repository's 15-class configuration. `val.py` performs folder inference rather than metric calculation. Results from another dataset or class configuration should be reported separately.
 
-## 👥 Authors
+## Demonstration guide
 
-- **Josh-1317** - [GitHub](https://github.com/Josh-1317)
+1. Start React and show the overview, detection list, and detail routes.
+2. Explain which values and controls use sample data.
+3. Show a saved annotated image.
+4. With a compatible checkpoint available, run inference on a new image.
+5. Explain how a future API would connect these results to the dashboard.
 
-## 🙏 Acknowledgments
+## Troubleshooting
 
-- [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) for the object detection framework
-- React and the open-source community for frontend tools
+| Symptom | Check |
+| --- | --- |
+| Dataset cannot be found | Replace the absolute Windows training path and verify split locations |
+| CUDA unavailable | Inspect `check.py` and the PyTorch installation |
+| GPU memory exhausted | Reduce batch size and close other GPU workloads |
+| No inference output | Check the checkpoint, image folder, and supported extensions |
+| Output directory creation fails | Ensure its parent exists; the script does not create every missing parent |
+| Dashboard keeps showing sample values | The current frontend has no inference API connection |
+| Report is not saved | The form has no persistence handler |
 
-## 📧 Contact
+## Development roadmap
 
-For questions or support, please open an issue on GitHub or contact: joshikaa04@gmail.com
+Proposed extensions, not completed capabilities:
 
----
+1. Add an inference API that returns structured detections.
+2. Persist images, detections, and maintenance status changes.
+3. Replace mock dashboard records with API responses.
+4. Connect camera input with timestamps and device identities.
+5. Implement authenticated roles and report submission.
+6. Add location/chainage and sensor integration, then measure synchronization and field performance.
 
-**Note**: This system is designed for railway track monitoring and defect detection. Ensure proper validation and testing before deployment in production environments.
+## Project structure
+
+| Path | Purpose |
+| --- | --- |
+| `frontend/src/pages/` | Dashboard and workflow pages |
+| `frontend/src/components/` | Detection, device, map, chart, and layout components |
+| `frontend/src/context/AuthContext.jsx` | Demo role state |
+| `frontend/src/lib/mockData.js` | Dashboard sample data |
+| `train_yolo.py` | Training configuration and entry point |
+| `val.py` | Image-folder inference |
+| `data.yaml` | Dataset split paths and class names |
+
+
+
