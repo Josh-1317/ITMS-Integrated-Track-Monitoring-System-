@@ -9,7 +9,7 @@ A computer-vision project for exploring railway track defect detection, paired w
 ## Implementation status
 
 | Component | Current scope |
-| --- | --- |
+|---|---|
 | Detection training | YOLOv8s training script and 15-class dataset configuration |
 | Image inference | Batch inference script that saves annotated images |
 | Dashboard | React pages for detections, live-view presentation, tasks, devices, and reporting |
@@ -20,14 +20,22 @@ Dashboard screens and mock data demonstrate the intended workflow. They should n
 
 ## Quick start
 
+Clone your repository:
+
 ```bash
-git clone https://github.com/Praveenraj1618/Integrated-Track-Monitoring-System.git
-cd Integrated-Track-Monitoring-System/frontend
+git clone https://github.com/Josh-1317/ITMS-Integrated-Track-Monitoring-System-.git
+cd ITMS-Integrated-Track-Monitoring-System-
+```
+
+Run the frontend:
+
+```bash
+cd frontend
 npm install
 npm start
 ```
 
-Open http://localhost:3000. Use the available demo roles to explore the interface.
+Open [http://localhost:3000](http://localhost:3000). Use the available demo roles to explore the interface.
 
 Build the frontend with `npm run build` from `frontend/`.
 
@@ -48,8 +56,8 @@ python -m pip install ultralytics opencv-python numpy
 ### Training
 
 1. Provide a YOLO-format dataset with image/label splits for training, validation, and testing.
-2. Update [data.yaml](data.yaml) with paths to those splits.
-3. Change `data_config_path` in [train_yolo.py](train_yolo.py); it currently points to a machine-specific Windows location.
+2. Update `data.yaml` with paths to those splits.
+3. Change `data_config_path` in `train_yolo.py`; it currently points to a machine-specific Windows location.
 4. Adjust `device`, batch size, and workers for your hardware. The committed configuration selects CUDA device 0 and batch size 32.
 5. Run `python train_yolo.py`.
 
@@ -57,7 +65,7 @@ The script specifies YOLOv8s, 80 epochs, 640-pixel images, and early-stopping pa
 
 ### Image inference
 
-Edit `MODEL_PATH`, `IMAGE_FOLDER`, and `OUTPUT_FOLDER` in [val.py](val.py), then run:
+Edit `MODEL_PATH`, `IMAGE_FOLDER`, and `OUTPUT_FOLDER` in `val.py`, then run:
 
 ```bash
 python val.py
@@ -79,18 +87,19 @@ The repository has two independently runnable parts: a Python detection workflow
 
 ```mermaid
 flowchart TD
-  subgraph Detection["Python detection workflow"]
-    A["Labeled track images"] --> B["YOLOv8s training"]
-    B --> C["Trained checkpoint"]
-    D["Inspection images"] --> E["Folder inference"]
-    C --> E
-    E --> F["Annotated image files"]
-  end
-  subgraph Interface["React demonstration"]
-    G["Sample detection records"] --> H["Dashboard and detail views"]
-    I["Demo role selection"] --> H
-    J["Prerecorded video"] --> K["Live-view presentation"]
-  end
+    subgraph Detection["Python detection workflow"]
+        A["Labeled track images"] --> B["YOLOv8s training"]
+        B --> C["Trained checkpoint"]
+        D["Inspection images"] --> E["Folder inference"]
+        C --> E
+        E --> F["Annotated image files"]
+    end
+
+    subgraph Interface["React demonstration"]
+        G["Sample detection records"] --> H["Dashboard and detail views"]
+        I["Demo role selection"] --> H
+        J["Prerecorded video"] --> K["Live-view presentation"]
+    end
 ```
 
 There is no committed API connecting these two parts. The dashboard demonstrates how inspection results could be reviewed; the Python scripts perform training and image inference separately.
@@ -104,7 +113,7 @@ Training begins with `yolov8s.pt` and adapts its weights to the configured datas
 ### Dashboard behavior
 
 | Screen or component | Current implementation |
-| --- | --- |
+|---|---|
 | Dashboard overview | Reads `mockDetections`; several KPI values are hardcoded |
 | Detection list | Shows sample labels, severity, status, and timestamps |
 | Detection details | Provides a route for reviewing individual records |
@@ -118,7 +127,7 @@ The displayed predictive risk score is a fixed interface value, not a trained mo
 ### Navigation
 
 | Route | Purpose |
-| --- | --- |
+|---|---|
 | `/` | Landing page |
 | `/login` | Demo role selection |
 | `/report` | Public report form |
@@ -140,7 +149,7 @@ class_id center_x center_y width height
 Coordinates are normalized to the image dimensions. Class IDs are zero-based and must follow the label order in `data.yaml`.
 
 | Split | Images | Labels |
-| --- | --- | --- |
+|---|---|---|
 | Training | `train/images` | `train/labels` |
 | Validation | `valid/images` | `valid/labels` |
 | Test | `test/images` | `test/labels` |
@@ -150,7 +159,7 @@ Split inspection sequences or locations before training where possible. Adjacent
 ### Committed configuration
 
 | Setting | Value | Purpose |
-| --- | --- | --- |
+|---|---|---|
 | Initial model | YOLOv8s | Transfer-learning starting point |
 | Epoch limit | 80 | Maximum training passes |
 | Image size | 640 | Training input size |
@@ -174,7 +183,7 @@ Browse [saved prototype detections](prototype_results) and [prototype input imag
 Record the checkpoint, dataset split, class mapping, image size, confidence threshold, software environment, and hardware for each evaluation.
 
 | Measure | Interpretation |
-| --- | --- |
+|---|---|
 | Precision | Fraction of reported detections that match labeled defects |
 | Recall | Fraction of labeled defects successfully found |
 | mAP@50 | Detection ranking and localization at IoU 0.50 |
@@ -195,7 +204,7 @@ This documentation does not claim a reproduced score for the repository's 15-cla
 ## Troubleshooting
 
 | Symptom | Check |
-| --- | --- |
+|---|---|
 | Dataset cannot be found | Replace the absolute Windows training path and verify split locations |
 | CUDA unavailable | Inspect `check.py` and the PyTorch installation |
 | GPU memory exhausted | Reduce batch size and close other GPU workloads |
@@ -218,7 +227,7 @@ Proposed extensions, not completed capabilities:
 ## Project structure
 
 | Path | Purpose |
-| --- | --- |
+|---|---|
 | `frontend/src/pages/` | Dashboard and workflow pages |
 | `frontend/src/components/` | Detection, device, map, chart, and layout components |
 | `frontend/src/context/AuthContext.jsx` | Demo role state |
@@ -227,5 +236,6 @@ Proposed extensions, not completed capabilities:
 | `val.py` | Image-folder inference |
 | `data.yaml` | Dataset split paths and class names |
 
+## Repository
 
-
+GitHub: https://github.com/Josh-1317/ITMS-Integrated-Track-Monitoring-System-
